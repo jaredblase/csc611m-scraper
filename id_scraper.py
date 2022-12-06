@@ -7,7 +7,7 @@ from queue import Queue
 
 class IDScraper(threading.Thread):
 	__COUNTER_LOCK = threading.Lock()
-	COUNTER = 2
+	__COUNTER = 2
 	ID_EVENT = threading.Event()
 	STOP_EVENT = threading.Event()
 
@@ -26,7 +26,7 @@ class IDScraper(threading.Thread):
 			IDScraper.__COUNTER_LOCK.acquire()
 
 			# if there are lacking children, wait until main thread loads more items
-			if self.get_children_count() < IDScraper.COUNTER and not IDScraper.STOP_EVENT.is_set():
+			if self.get_children_count() < IDScraper.__COUNTER and not IDScraper.STOP_EVENT.is_set():
 				IDScraper.ID_EVENT.clear()
 			
 			while not IDScraper.ID_EVENT.is_set() and not IDScraper.STOP_EVENT.is_set():
@@ -34,13 +34,12 @@ class IDScraper(threading.Thread):
 
 			element = None
 			try:
-				element = self.driver.find_element(By.CSS_SELECTOR, f'#dlsu-personnel-list :nth-child({IDScraper.COUNTER}) button[name=personnel]')
+				element = self.driver.find_element(By.CSS_SELECTOR, f'#dlsu-personnel-list :nth-child({IDScraper.__COUNTER}) button[name=personnel]')
 			except NoSuchElementException:
 				pass
 			finally:
-				IDScraper.COUNTER += 1
+				IDScraper.__COUNTER += 1
 				IDScraper.__COUNTER_LOCK.release()
 
 			if element:
-				print(element.get_attribute('value'))
 				self.id_buffer.put(element.get_attribute('value'))

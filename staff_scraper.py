@@ -1,30 +1,25 @@
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 import threading
+import atexit
 from queue import Queue, Empty
 from wait import href_has_mailto
 from professor import Professor
-
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
-OPTIONS = Options()
-OPTIONS.add_argument('--headless')
-OPTIONS.add_experimental_option("excludeSwitches", ["enable-logging"])
-OPTIONS.add_argument('--disable-dev-shm-usage')
-OPTIONS.add_argument('--no-sandbox')
+from utils import create_driver
 
 class StaffScraper(threading.Thread):
 	STOP_EVENT = threading.Event()
+	__COUNTER_LOCK = threading.Lock()
+	COUNTER = 0
 
-	def __init__(self, driver: webdriver.Chrome, id_buffer: Queue, personnel_list: Queue):
+	def __init__(self, id_buffer: Queue, personnel_list: Queue, driver=None):
 		threading.Thread.__init__(self)
-		self.driver = driver
+		self.driver = create_driver() if driver is None else driver
 		self.id_buffer = id_buffer
 		self.personnel_list = personnel_list
+		atexit.register(self.__close)
 
 	def run(self):
 		while not StaffScraper.STOP_EVENT.is_set():
@@ -35,6 +30,10 @@ class StaffScraper(threading.Thread):
 				self.id_buffer.put(id)
 
 			self.driver.get(f'https://www.dlsu.edu.ph/staff-directory/?personnel={id}')
+			
+			StaffScraper.__COUNTER_LOCK.acquire()
+			StaffScraper.COUNTER += 1
+			StaffScraper.__COUNTER_LOCK.release()
 
 			try:
 				email = WebDriverWait(self.driver, 10).until(
@@ -54,3 +53,6 @@ class StaffScraper(threading.Thread):
 			print(Professor(name, email, department, position))
 			# add to queue
 			self.personnel_list.put(Professor(name, email, department, position))
+
+	def __close(self):
+		self.driver.quit()

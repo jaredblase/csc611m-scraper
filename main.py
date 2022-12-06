@@ -8,13 +8,13 @@ from queue import Queue, Empty
 from typing import List
 import csv
 
-import config
+from utils import create_driver
 from staff_scraper import StaffScraper
 from id_scraper import IDScraper
 
 # constants
 N_PRODUCER = 1
-N_CONSUMER = 5
+N_CONSUMER = 4
 N_TIME = 30 # seconds
 
 URL = 'https://www.dlsu.edu.ph/staff-directory'
@@ -37,7 +37,7 @@ def stop_execution():
 
 timer = None
 try:
-	DRIVER = webdriver.Chrome(service=config.SERVICE, options=config.OPTIONS)
+	DRIVER = create_driver()
 	DRIVER.get(URL)
 	
 	# initialize readers
@@ -47,7 +47,7 @@ try:
 
 	# initialize requesters
 	for _ in range(N_CONSUMER):
-		consumer_threads.append(StaffScraper(DRIVER, ID_BUFFER, PERSONNEL_LIST))
+		consumer_threads.append(StaffScraper(ID_BUFFER, PERSONNEL_LIST))
 		consumer_threads[-1].start()
 
 	# set timer
@@ -72,7 +72,7 @@ finally:
 
 	for thread in consumer_threads:
 		thread.join()
-	
+
 	# write personnel
 	with open('personnel.csv', 'w', newline='') as f:
 		writer = csv.writer(f)
@@ -80,7 +80,6 @@ finally:
 		while True:
 			try:
 				prof = PERSONNEL_LIST.get(timeout=1)
-				print(prof)
 				PERSONNEL_COUNT += 1
 				writer.writerow([prof.name, prof.email, prof.department, prof.position])
 			except Empty:
@@ -89,9 +88,8 @@ finally:
 	# write statistics
 	with open('statistics.txt', 'w') as f:
 		f.write(f'''URL: {URL}
-								Statistics
-								Number of pages scraped: {IDScraper.COUNTER}
-								Number of emails found: {PERSONNEL_COUNT}
-						 ''')
+		Statistics
+		Number of pages scraped: {StaffScraper.COUNTER}
+		Number of emails found: {PERSONNEL_COUNT}''')
 
 	DRIVER.quit()
