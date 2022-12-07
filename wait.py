@@ -39,10 +39,10 @@ def thread_safe_element_to_be_clickable(mark, lock: Lock):
 	pred = element_to_be_clickable(mark)
 
 	def _predicate(driver: webdriver.Chrome):
-		while not lock.acquire(timeout=5):
-			pass
+		lock.acquire()
 		result = pred(driver)
-		lock.release()
+		if lock.locked():
+			lock.release()
 		return result
 
 	return _predicate
