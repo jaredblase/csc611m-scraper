@@ -6,7 +6,7 @@ import threading
 import atexit
 from queue import Queue, Empty
 from wait import href_has_mailto
-from professor import Professor
+from personnel import Personnel
 from utils import create_driver
 
 class StaffScraper(threading.Thread):
@@ -57,7 +57,7 @@ class StaffScraper(threading.Thread):
 
 			# print(Professor(name, email, department, position))
 			# add to queue
-			self.personnel_list.put(Professor(name, email, department, position))
+			self.personnel_list.put(Personnel(name, email, department, position))
 
 	def __close(self):
 		self.driver.quit()
