@@ -39,7 +39,9 @@ class StaffScraper(threading.Thread):
 				email = WebDriverWait(self.driver, 10).until(
 					href_has_mailto((By.CSS_SELECTOR, 'ul.list-unstyled.text-capitalize.text-center ul a'))
 				)
-			except (NoSuchElementException, TimeoutException):
+			except NoSuchElementException:
+				continue
+			except TimeoutException:
 				self.id_buffer.put(id)
 				continue
 
