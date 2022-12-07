@@ -1,7 +1,7 @@
-from selenium import webdriver
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from wait import thread_safe_element_to_be_clickable
 
 import threading
 from queue import Queue, Empty
@@ -15,13 +15,14 @@ from id_scraper import IDScraper
 # constants
 N_PRODUCER = 1
 N_CONSUMER = 4
-N_TIME = 30 # seconds
+N_TIME = 90	 # seconds
 
 URL = 'https://www.dlsu.edu.ph/staff-directory'
 PERSONNEL_LIST = Queue()
 PERSONNEL_COUNT = 0
 ID_BUFFER = Queue()
 STOPPED = False
+DRIVER_LOCK = threading.Lock()
 
 HEADER = ['name', 'email', 'department', 'position']
 
@@ -42,7 +43,7 @@ try:
 	
 	# initialize readers
 	for _ in range(N_PRODUCER):
-		producer_threads.append(IDScraper(DRIVER, ID_BUFFER))
+		producer_threads.append(IDScraper(DRIVER, DRIVER_LOCK, ID_BUFFER))
 		producer_threads[-1].start()
 
 	# initialize requesters
@@ -59,11 +60,12 @@ try:
 		DRIVER.execute_script(
 			'arguments[0].click();',
 			WebDriverWait(DRIVER, 30).until(
-				EC.element_to_be_clickable((By.CSS_SELECTOR, '#dlsu-personnel-button button'))
+				thread_safe_element_to_be_clickable((By.CSS_SELECTOR, '#dlsu-personnel-button button'), DRIVER_LOCK)
 			)
 		)
 		IDScraper.ID_EVENT.set() # notify ID scraper that new items are loaded
-
+except TimeoutException:
+	pass
 finally:
 	timer.join()
 
