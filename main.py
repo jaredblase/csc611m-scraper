@@ -14,8 +14,6 @@ from id_scraper import IDScraper
 
 # constants
 N_PRODUCER = 1
-N_CONSUMER = 4
-N_TIME = 90	 # seconds
 
 URL = 'https://www.dlsu.edu.ph/staff-directory'
 PERSONNEL_LIST = Queue()
@@ -36,6 +34,9 @@ def stop_execution():
 	IDScraper.STOP_EVENT.set()
 	print('stopping...')
 
+n_time = int(input('Enter scraping time in minutes: ')) * 60
+n_consumer = int(input('Enter number of consumer threads to use: '))
+
 timer = None
 try:
 	DRIVER = create_driver()
@@ -47,12 +48,12 @@ try:
 		producer_threads[-1].start()
 
 	# initialize requesters
-	for _ in range(N_CONSUMER):
+	for _ in range(n_consumer):
 		consumer_threads.append(StaffScraper(ID_BUFFER, PERSONNEL_LIST))
 		consumer_threads[-1].start()
 
 	# set timer
-	timer = threading.Timer(N_TIME, stop_execution)
+	timer = threading.Timer(n_time, stop_execution)
 	timer.start()
 
 	while not STOPPED:
