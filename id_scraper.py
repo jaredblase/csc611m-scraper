@@ -52,6 +52,7 @@ class IDScraper(threading.Thread):
 			except NoSuchElementException:
 				pass
 			finally:
-				self.driver_lock.release()
+				if self.driver_lock.locked():
+					self.driver_lock.release()
 				IDScraper.__COUNTER += 1
 				IDScraper.__COUNTER_LOCK.release()
