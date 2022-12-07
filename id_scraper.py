@@ -32,7 +32,8 @@ class IDScraper(threading.Thread):
 
 	def run(self):
 		while not IDScraper.STOP_EVENT.is_set():
-			IDScraper.__COUNTER_LOCK.acquire()
+			while not IDScraper.__COUNTER_LOCK.acquire(timeout=5) and not IDScraper.STOP_EVENT.is_set():
+				pass
 
 			# if there are lacking children, wait until main thread loads more items
 			if self.get_children_count() < IDScraper.__COUNTER and not IDScraper.STOP_EVENT.is_set():

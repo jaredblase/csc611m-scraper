@@ -27,7 +27,7 @@ class StaffScraper(threading.Thread):
 			try:
 				id = self.id_buffer.get(timeout=5)
 			except Empty:
-				self.id_buffer.put(id)
+				continue
 
 			self.driver.get(f'https://www.dlsu.edu.ph/staff-directory/?personnel={id}')
 			
@@ -40,6 +40,7 @@ class StaffScraper(threading.Thread):
 					href_has_mailto((By.CSS_SELECTOR, 'ul.list-unstyled.text-capitalize.text-center ul a'))
 				)
 			except (NoSuchElementException, TimeoutException):
+				self.id_buffer.put(id)
 				continue
 
 			# extract data
@@ -50,7 +51,7 @@ class StaffScraper(threading.Thread):
 			position = list_items[0].get_attribute('innerText')
 			department = list_items[1].get_attribute('innerText')
 
-			print(Professor(name, email, department, position))
+			# print(Professor(name, email, department, position))
 			# add to queue
 			self.personnel_list.put(Professor(name, email, department, position))
 
