@@ -18,7 +18,7 @@ class IDScraper(threading.Thread):
 		self.id_buffer = id_buffer
 
 	def get_children_count(self):
-		while not self.driver_lock.acquire(timeout=5) and not IDScraper.STOP_EVENT.is_set():
+		while not IDScraper.STOP_EVENT.is_set() and not self.driver_lock.acquire(timeout=5):
 			pass
 
 		if IDScraper.STOP_EVENT.is_set():
@@ -32,19 +32,19 @@ class IDScraper(threading.Thread):
 
 	def run(self):
 		while not IDScraper.STOP_EVENT.is_set():
-			while not IDScraper.__COUNTER_LOCK.acquire(timeout=5) and not IDScraper.STOP_EVENT.is_set():
+			while not IDScraper.STOP_EVENT.is_set() and not IDScraper.__COUNTER_LOCK.acquire(timeout=5):
 				pass
 
 			# if there are lacking children, wait until main thread loads more items
-			if self.get_children_count() < IDScraper.__COUNTER and not IDScraper.STOP_EVENT.is_set():
+			if not IDScraper.STOP_EVENT.is_set() and self.get_children_count() < IDScraper.__COUNTER: 
 				IDScraper.ID_EVENT.clear()
 			
-			while not IDScraper.ID_EVENT.is_set() and not IDScraper.STOP_EVENT.is_set():
+			while not IDScraper.STOP_EVENT.is_set() and not IDScraper.ID_EVENT.is_set():
 				pass
 
 			element = None
 			try:
-				while not self.driver_lock.acquire(timeout=5) and not IDScraper.STOP_EVENT.is_set():
+				while not IDScraper.STOP_EVENT.is_set() and not self.driver_lock.acquire(timeout=5):
 					pass
 				element = self.driver.find_element(By.CSS_SELECTOR, f'#dlsu-personnel-list :nth-child({IDScraper.__COUNTER}) button[name=personnel]')
 				# print(element.get_attribute('value'))
