@@ -39,9 +39,11 @@ class StaffScraper(threading.Thread):
 				email = WebDriverWait(self.driver, 10).until(
 					href_has_mailto((By.CSS_SELECTOR, 'ul.list-unstyled.text-capitalize.text-center ul a'))
 				)
-			except NoSuchElementException:
-				continue
+
+				if email == True: # email element not present
+					continue
 			except TimeoutException:
+				print(f'Pass! {id}')
 				self.id_buffer.put(id)
 				continue
 
@@ -53,7 +55,7 @@ class StaffScraper(threading.Thread):
 			position = list_items[0].get_attribute('innerText')
 			department = list_items[1].get_attribute('innerText')
 
-			# print(Professor(name, email, department, position))
+			print(Professor(name, email, department, position))
 			# add to queue
 			self.personnel_list.put(Professor(name, email, department, position))
 

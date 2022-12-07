@@ -2,7 +2,7 @@ from selenium import webdriver
 from threading import Lock
 from selenium.webdriver.remote.webdriver import WebElement
 from selenium.webdriver.support.expected_conditions import element_to_be_clickable
-
+from selenium.common.exceptions import NoSuchElementException
 
 def href_has_mailto(mark):
 	'''
@@ -13,9 +13,11 @@ def href_has_mailto(mark):
 
 	def _predicate(driver: webdriver.Chrome):
 		# find element if locator is given
-		el = mark if isinstance(mark, WebElement) else driver.find_element(*mark)
-
-		return el if 'mailto' in el.get_attribute('href') else False
+		try:
+			el = mark if isinstance(mark, WebElement) else driver.find_element(*mark)
+			return el if 'mailto' in el.get_attribute('href') else False
+		except NoSuchElementException:
+			return True
 
 	return _predicate
 
