@@ -47,10 +47,11 @@ class IDScraper(threading.Thread):
 				while not self.driver_lock.acquire(timeout=5) and not IDScraper.STOP_EVENT.is_set():
 					pass
 				element = self.driver.find_element(By.CSS_SELECTOR, f'#dlsu-personnel-list :nth-child({IDScraper.__COUNTER}) button[name=personnel]')
+				# print(element.get_attribute('value'))
 				self.id_buffer.put(element.get_attribute('value'))
-				self.driver_lock.release()
 			except NoSuchElementException:
 				pass
 			finally:
+				self.driver_lock.release()
 				IDScraper.__COUNTER += 1
 				IDScraper.__COUNTER_LOCK.release()

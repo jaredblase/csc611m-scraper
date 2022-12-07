@@ -91,8 +91,8 @@ finally:
 	# write statistics
 	with open('statistics.txt', 'w') as f:
 		f.write(f'''URL: {URL}
-		Statistics
-		Number of pages scraped: {StaffScraper.COUNTER}
-		Number of emails found: {PERSONNEL_COUNT}''')
+Statistics
+Number of pages scraped: {StaffScraper.COUNTER}
+Number of emails found: {PERSONNEL_COUNT}''')
 
 	DRIVER.quit()

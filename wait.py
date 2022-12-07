@@ -15,7 +15,14 @@ def href_has_mailto(mark):
 		# find element if locator is given
 		try:
 			el = mark if isinstance(mark, WebElement) else driver.find_element(*mark)
-			return el if 'mailto' in el.get_attribute('href') else False
+			href = el.get_attribute('href')
+
+			if 'mailto' in href:
+				return el
+			if 'cdn-cgi' in href: # still loading
+				return False
+			else:
+				return True
 		except NoSuchElementException:
 			return True
 
