@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 @dataclass
-class Professor:
+class Personnel:
 	name: str
 	email: str
 	department: str
