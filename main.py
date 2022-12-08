@@ -66,8 +66,11 @@ try:
 		)
 		IDScraper.ID_EVENT.set() # notify ID scraper that new items are loaded
 except TimeoutException:
+	stop_execution()
 	pass
 finally:
+	IDScraper.ID_EVENT.set() # makes sure that wait() in not stuck
+	
 	timer.join()
 
 	for thread in producer_threads:

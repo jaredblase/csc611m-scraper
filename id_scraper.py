@@ -38,14 +38,17 @@ class IDScraper(threading.Thread):
 			# if there are lacking children, wait until main thread loads more items
 			if not IDScraper.STOP_EVENT.is_set() and self.get_children_count() < IDScraper.__COUNTER: 
 				IDScraper.ID_EVENT.clear()
-			
-			while not IDScraper.STOP_EVENT.is_set() and not IDScraper.ID_EVENT.is_set():
-				pass
 
+			IDScraper.ID_EVENT.wait()
+			
 			element = None
 			try:
 				while not IDScraper.STOP_EVENT.is_set() and not self.driver_lock.acquire(timeout=5):
 					pass
+
+				if IDScraper.STOP_EVENT.is_set():
+					raise NoSuchElementException
+				
 				element = self.driver.find_element(By.CSS_SELECTOR, f'#dlsu-personnel-list :nth-child({IDScraper.__COUNTER}) button[name=personnel]')
 				# print(element.get_attribute('value'))
 				self.id_buffer.put(element.get_attribute('value'))
